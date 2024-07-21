@@ -1,6 +1,5 @@
 package com.example.githubrepolister.service;
 
-import static com.example.githubrepolister.constants.Constants.APPLICATION_JSON;
 import static com.example.githubrepolister.constants.Constants.USER_REPOS_BRANCHES_URI;
 import static com.example.githubrepolister.constants.Constants.USER_REPOS_URI;
 
@@ -16,6 +15,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -35,10 +35,11 @@ public class GithubRepoService {
         try {
             List<Repository> repositories = webClient.get()
                     .uri(USER_REPOS_URI, username)
-                    .header(HttpHeaders.ACCEPT, APPLICATION_JSON)
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                     .retrieve()
                     .onStatus(HttpStatusCode::is4xxClientError, clientResponse ->
-                            Mono.error(new UserNotFoundException("User not found"))
+                            Mono.error(new UserNotFoundException("User "
+                                    + username + " not found "))
                     )
                     .bodyToFlux(Repository.class)
                     .filter(repo -> !repo.isFork())
@@ -63,7 +64,7 @@ public class GithubRepoService {
     private List<BranchInfo> getBranches(String username, String repository) {
         return webClient.get()
                 .uri(USER_REPOS_BRANCHES_URI, username, repository)
-                .header(HttpHeaders.ACCEPT, APPLICATION_JSON)
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .retrieve()
                 .bodyToFlux(Branch.class)
                 .map(branch -> new BranchInfo(branch.getName(), branch.getCommit().getSha()))
