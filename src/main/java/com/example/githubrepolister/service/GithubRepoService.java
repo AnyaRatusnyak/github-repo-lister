@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
@@ -21,6 +22,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @Service
 public class GithubRepoService {
 
@@ -57,7 +59,9 @@ public class GithubRepoService {
                     .orElse(Collections.emptyList());
 
         } catch (WebClientResponseException e) {
-            throw new UserNotFoundException("User not found");
+            log.error("Error fetching repositories for user {}: {}", username, e.getMessage());
+            throw new UserNotFoundException("User "
+                    + username + " not found ");
         }
     }
 
